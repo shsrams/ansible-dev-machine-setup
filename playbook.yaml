@@ -1,0 +1,42 @@
+- hosts: localhost
+  vars:
+    ansible_connection: local
+    ansible_python_interpreter: python3.11
+    pip_executable: /home/ec2-user/.local/bin/pip
+
+  tasks:
+
+  - name: get the username running the deploy
+    become: false
+    local_action: command whoami
+    register: username_on_the_host
+
+  - name: Upgrade all packages
+    yum:
+      name: '*'
+      state: latest
+
+  - include_tasks: tasks/awscli.yml
+  - include_tasks: tasks/node.yml
+  - include_tasks: tasks/docker.yml
+
+  - name: "Install Python packages"
+    become: false
+    pip:
+      requirements: requirements.txt
+      executable: "{{ pip_executable }}"
+      chdir: "{{ playbook_dir }}"
+
+  - name: "Install git"
+    yum:
+      name:
+        - git
+      state: latest
+
+  - name: Installs pnpm
+    become: false
+    command: npm install -g pnpm
+    
+
+
+    

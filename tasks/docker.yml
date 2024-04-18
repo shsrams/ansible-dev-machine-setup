@@ -1,0 +1,23 @@
+---
+- name: "Install docker"
+  ansible.builtin.yum:
+    name:
+      - docker
+    state: latest
+
+- name: "Add non-privileged user ({{ username_on_the_host.stdout }}) to docker group"
+  ansible.builtin.user:
+    name: "{{ username_on_the_host.stdout }}"
+    groups: docker
+    append: yes
+  register: add_to_docker_group_result
+
+- name: Include reset connection tasks
+  ansible.builtin.include_tasks: reset_connection.yml
+  when: add_to_docker_group_result.changed == true      
+
+- name: "Start docker service"
+  ansible.builtin.service:
+    name: docker
+    enabled: yes
+    state: started
