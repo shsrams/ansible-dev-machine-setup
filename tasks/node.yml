@@ -1,5 +1,5 @@
 - name: "Install nvm"
-  become_user: "{{ ansible_user_id }}"
+  become: false
   shell: >
     curl -o-  https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
   args:
@@ -8,7 +8,7 @@
     creates: "$HOME/.nvm/nvm.sh"
 
 - name: "Install Node"
-  become_user: "{{ ansible_user_id }}"
+  become: false
   shell: >
     . $HOME/.nvm/nvm.sh && nvm install --lts
   args:
