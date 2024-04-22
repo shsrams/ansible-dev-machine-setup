@@ -14,3 +14,16 @@
   args:
     executable: /bin/bash
     chdir: "$HOME"
+
+- name: "Enable corepack"
+  become: false
+  shell: >
+    corepack enable
+
+- name: Installs pnpm
+  become: false
+  command: corepack install --global pnpm@*
+
+- name: Install yarn
+  become: false
+  command: corepack install --global yarn@stable  

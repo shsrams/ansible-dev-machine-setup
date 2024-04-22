@@ -27,15 +27,19 @@
       executable: "{{ pip_executable }}"
       chdir: "{{ playbook_dir }}"
 
+  - name: Install poetry
+    become: false
+    shell: |
+      curl -sSL https://install.python-poetry.org | "{{ ansible_python_interpreter }}" -
+    args:
+      executable: /bin/bash
+
   - name: "Install git"
     yum:
       name:
         - git
       state: latest
 
-  - name: Installs pnpm
-    become: false
-    command: npm install -g pnpm
     
 
 
