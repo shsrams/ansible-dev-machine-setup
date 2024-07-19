@@ -1,7 +1,7 @@
 - hosts: localhost
   vars:
     ansible_connection: local
-    ansible_python_interpreter: python3.11
+    ansible_python_interpreter: python3.12
     pip_executable: /home/ec2-user/.local/bin/pip
 
   tasks:
