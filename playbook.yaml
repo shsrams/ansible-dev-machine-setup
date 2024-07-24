@@ -40,6 +40,11 @@
         - git
       state: latest
 
+  - name: "Install setuptools"
+    yum:
+      name:
+        - python-setuptools
+      state: latest
     
 
 
