@@ -27,3 +27,7 @@
 - name: Install yarn
   become: false
   command: corepack install --global yarn@stable  
+
+- name: Install ts-node
+  become: false
+  command: npm install --global ts-node@latest
