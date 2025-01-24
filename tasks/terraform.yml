@@ -1,0 +1,21 @@
+ # tasks/terraform.yml
+- name: "Install Terraform pre-reqs"
+  yum:
+    name: 
+      - yum-utils
+      - shadow-utils
+    enablerepo: hashicorp
+    state: latest      
+
+- name: "Add Terraform yum repo"
+  shell: |
+    yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+
+- name: "Install Terraform"
+  yum:
+    name: terraform
+    state: latest
+
+- name: "Install Terraform autocomplete"
+  shell: |
+    terraform -install-autocomplete

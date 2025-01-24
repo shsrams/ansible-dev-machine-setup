@@ -45,7 +45,5 @@
       name:
         - python-setuptools
       state: latest
-    
 
-
-    
+  - include_tasks: tasks/terraform.yml
