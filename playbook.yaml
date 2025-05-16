@@ -47,3 +47,8 @@
       state: latest
 
   - include_tasks: tasks/terraform.yml
+
+  - name: "Install uv"
+    become: false
+    shell: |
+      curl -LsSf https://astral.sh/uv/install.sh | sh
