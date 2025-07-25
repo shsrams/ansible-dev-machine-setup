@@ -34,6 +34,11 @@
     args:
       executable: /bin/bash
 
+  - name: "Install Development Tools"
+    yum:
+      name: "@Development Tools"
+      state: latest
+
   - name: "Install git"
     yum:
       name:
