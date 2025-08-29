@@ -1,0 +1,23 @@
+---
+- name: Clone Neovim repository
+  git:
+      repo: 'https://github.com/neovim/neovim.git'
+      dest: '/tmp/neovim_build'
+      version: 'stable' # Or a specific tag/branch if desired
+      force: yes  
+
+- name: Build Neovim
+  command: make CMAKE_BUILD_TYPE=Release
+  args:
+    chdir: '/tmp/neovim_build'
+
+- name: Install Neovim
+  command: make install
+  become: true
+  args:
+    chdir: '/tmp/neovim_build'
+
+- name: Clean up build directory
+  file:
+    path: '/tmp/neovim_build'
+    state: absent

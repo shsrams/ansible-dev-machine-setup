@@ -1,7 +1,7 @@
 - hosts: localhost
   vars:
     ansible_connection: local
-    ansible_python_interpreter: python3.12
+    ansible_python_interpreter: python3.13
     pip_executable: /home/ec2-user/.local/bin/pip
 
   tasks:
@@ -57,3 +57,6 @@
     become: false
     shell: |
       curl -LsSf https://astral.sh/uv/install.sh | sh
+
+  #- include_tasks: tasks/neovim.yml
+  - include_tasks: tasks/tmux.yml

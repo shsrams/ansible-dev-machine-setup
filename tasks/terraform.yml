@@ -16,6 +16,13 @@
     name: terraform
     state: latest
 
+- name: "Check if Terraform autocomplete is installed"
+  shell: grep -q "complete -C.*terraform" ~/.bashrc
+  register: terraform_autocomplete_check
+  failed_when: false
+  changed_when: false
+
 - name: "Install Terraform autocomplete"
   shell: |
     terraform -install-autocomplete
+  when: terraform_autocomplete_check.rc != 0

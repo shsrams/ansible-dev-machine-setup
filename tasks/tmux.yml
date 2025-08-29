@@ -1,0 +1,35 @@
+---
+- name: Install Tmux package
+  ansible.builtin.package:
+    name: tmux
+    state: present
+
+- name: Clone Tmux Plugin Manager (TPM)
+  ansible.builtin.git:
+    repo: 'https://github.com/tmux-plugins/tpm'
+    dest: '~/.tmux/plugins/tpm'
+    update: yes # Ensure it's updated if it already exists
+
+- name: Configure .tmux.conf for TPM and plugins
+  ansible.builtin.blockinfile:
+    path: '~/.tmux.conf'
+    block: |
+      # List of plugins
+      set -g @plugin 'tmux-plugins/tpm'
+      set -g @plugin 'tmux-plugins/tmux-sensible' # Example plugin
+
+      set -g @treemux-tree-client 'nvim-tree'  # or 'neo-tree'
+      set -g @treemux-tree-nvim-init-file '~/.tmux/plugins/treemux/configs/treemux_init.lua'
+      set -g @plugin 'kiyoon/treemux'
+
+      # Other plugins can be added here, e.g.:
+      # set -g @plugin 'github_username/plugin_name'
+
+      # Initialize TMUX plugin manager (keep this line at the very bottom of tmux.conf)
+      run '~/.tmux/plugins/tpm/tpm'
+    create: yes # Create the file if it doesn't exist
+    mode: '0644' # Set appropriate permissions
+
+- name: Reload Tmux environment (if Tmux is running)
+  ansible.builtin.command: tmux source ~/.tmux.conf
+  ignore_errors: yes # Allow the playbook to continue even if tmux isn't active
