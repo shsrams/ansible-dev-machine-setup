@@ -3,7 +3,7 @@
   git:
       repo: 'https://github.com/neovim/neovim.git'
       dest: '/tmp/neovim_build'
-      version: 'stable' # Or a specific tag/branch if desired
+      version: 'stable'
       force: yes  
 
 - name: Build Neovim
@@ -21,3 +21,261 @@
   file:
     path: '/tmp/neovim_build'
     state: absent
+
+- name: Install Python provider for Neovim
+  become: false
+  pip:
+    name: pynvim
+    executable: "{{ pip_executable }}"
+
+- name: Create Neovim config directories
+  become: false
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - ~/.config/nvim
+    - ~/.config/nvim/lua
+    - ~/.config/nvim/lua/plugins
+    - ~/.config/nvim/lua/plugins/lazy
+    - ~/.config/nvim/after
+    - ~/.config/nvim/undodir
+
+- name: Configure Neovim init.lua
+  become: false
+  copy:
+    content: |
+      require("plugins")
+    dest: ~/.config/nvim/init.lua
+
+- name: Configure plugins init.lua
+  become: false
+  copy:
+    content: |
+      vim.g.mapleader = " "
+
+      require("plugins.lazy_init")
+      require("plugins.set")
+      require("plugins.remap")
+    dest: ~/.config/nvim/lua/plugins/init.lua
+
+- name: Configure lazy plugin manager
+  become: false
+  copy:
+    content: |
+      local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+      if not vim.loop.fs_stat(lazypath) then
+        vim.fn.system({
+          "git",
+          "clone",
+          "--filter=blob:none",
+          "https://github.com/folke/lazy.nvim.git",
+          "--branch=stable", -- latest stable release
+          lazypath,
+        })
+      end
+      vim.opt.rtp:prepend(lazypath)
+
+      require("lazy").setup({
+          spec = "plugins.lazy",
+          change_detection = { notify = false }
+      })
+    dest: ~/.config/nvim/lua/plugins/lazy_init.lua
+
+- name: Configure Neovim settings
+  become: false
+  copy:
+    content: |
+      vim.opt.tabstop = 2
+      vim.opt.softtabstop = 2
+      vim.opt.shiftwidth = 2
+      vim.opt.expandtab = true
+      vim.opt.autoindent = true
+      vim.opt.smartindent = true
+      vim.opt.smarttab = true
+      vim.opt.list = true
+      vim.opt.listchars = "eol:.,tab:>-,trail:~,extends:>,precedes:<"
+
+      vim.opt.number = true
+      vim.opt.relativenumber = true
+      vim.opt.cursorline = true
+      vim.opt.signcolumn = "yes:1"
+      vim.opt.scrolloff = 8
+      vim.opt.showcmd = true
+
+      vim.opt.swapfile = false
+      vim.opt.backup = false
+      vim.opt.undodir = os.getenv("HOME") .. "/.config/nvim/undodir"
+      vim.opt.undofile = true
+      vim.opt.clipboard = "unnamed"
+
+      vim.opt.hlsearch = true
+      vim.opt.incsearch = true
+      vim.opt.ignorecase = true
+      vim.opt.smartcase =true
+
+      vim.opt.termguicolors = true
+
+      vim.opt.showmode = false
+
+      -- No automatic comment insertion
+      vim.cmd([[autocmd FileType * set formatoptions-=ro]])
+    dest: ~/.config/nvim/lua/plugins/set.lua
+
+- name: Configure Neovim keymaps
+  become: false
+  copy:
+    content: |
+      vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
+      vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
+      vim.keymap.set("n", "<leader>s", [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]])
+
+      vim.api.nvim_create_autocmd("TextYankPost", {
+        desc = "Highlights text when yanking",
+        group = vim.api.nvim_create_augroup("kickstart-highlight-yank", { clear = true }),
+        callback = function()
+          vim.highlight.on_yank()
+        end,
+      })
+    dest: ~/.config/nvim/lua/plugins/remap.lua
+
+- name: Configure Treesitter plugin
+  become: false
+  copy:
+    content: |
+      return {
+        -- Highlight, edit, and navigate code
+        "nvim-treesitter/nvim-treesitter",
+        version = false,
+        build = ":TSUpdate",
+        event = { "BufReadPost", "BufNewFile" },
+        dependencies = {
+          "nvim-treesitter/nvim-treesitter-textobjects",
+          "windwp/nvim-ts-autotag",
+        },
+        opts = {
+          -- Add languages to be installed here that you want installed for treesitter
+          ensure_installed = {
+            "asm",
+            "bash",
+            "cpp",
+            "css",
+            "fish",
+            "graphql",
+            "html",
+            "http",
+            "go",
+            "java",
+            "javascript",
+            "json",
+            "just",
+            "lua",
+            -- "markdown",
+            "mermaid",
+            "nix",
+            "python",
+            "rust",
+            "scheme",
+            "sql",
+            "typescript",
+            "vim",
+            "vimdoc",
+            "xml",
+            "yaml",
+          },
+          -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
+          auto_install = false,
+          highlight = { enable = true },
+          indent = { enable = true, disable = { "python" } },
+          incremental_selection = {
+            enable = true,
+            keymaps = {
+              init_selection = "<leader>ss",
+              node_incremental = "<leader>si",
+              scope_incremental = "<leader>sc",
+              node_decremental = "<leader>sd",
+            },
+          },
+          autotag = {
+            enable = true,
+          },
+          textobjects = {
+            select = {
+              enable = true,
+              lookahead = true, -- Automatically jump forward to textobj, similar to targets.vim
+              keymaps = {
+                -- You can use the capture groups defined in textobjects.scm
+                ["aa"] = "@parameter.outer",
+                ["ia"] = "@parameter.inner",
+                ["af"] = "@function.outer",
+                ["if"] = "@function.inner",
+                ["ac"] = "@class.outer",
+                ["ic"] = "@class.inner",
+              },
+            },
+            move = {
+              enable = true,
+              set_jumps = true, -- whether to set jumps in the jumplist
+              goto_next_start = {
+                ["]m"] = "@function.outer",
+                ["]]"] = "@class.outer",
+              },
+              goto_next_end = {
+                ["]M"] = "@function.outer",
+                ["]["] = "@class.outer",
+              },
+              goto_previous_start = {
+                ["[m"] = "@function.outer",
+                ["[["] = "@class.outer",
+              },
+              goto_previous_end = {
+                ["[M"] = "@function.outer",
+                ["[]"] = "@class.outer",
+              },
+            },
+            swap = {
+              enable = true,
+              swap_next = {
+                ["<leader>a"] = "@parameter.inner",
+              },
+              swap_previous = {
+                ["<leader>A"] = "@parameter.inner",
+              },
+            },
+          },
+        },
+        config = function(_, opts)
+          -- pcall(require("nvim-treesitter.install").update({ with_sync = true }))
+          require("nvim-treesitter.configs").setup(opts)
+        end,
+      }
+    dest: ~/.config/nvim/lua/plugins/lazy/treesitter.lua
+
+- name: Configure Mason plugin
+  become: false
+  copy:
+    content: |
+      return {
+        'mason-org/mason.nvim',
+        opts = {},
+      }
+    dest: ~/.config/nvim/lua/plugins/lazy/mason.lua
+
+- name: Configure GitHub theme plugin
+  become: false
+  copy:
+    content: |
+      return {
+        'projekt0n/github-nvim-theme',
+        name = 'github-theme',
+        lazy = false, -- make sure we load this during startup if it is your main colorscheme
+        priority = 1000, -- make sure to load this before all the other start plugins
+        config = function()
+          require('github-theme').setup({
+            -- ...
+          })
+
+          vim.cmd('colorscheme github_dark_default')
+        end,    
+      }
+    dest: ~/.config/nvim/lua/plugins/lazy/githubtheme.lua

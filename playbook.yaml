@@ -58,5 +58,5 @@
     shell: |
       curl -LsSf https://astral.sh/uv/install.sh | sh
 
-  #- include_tasks: tasks/neovim.yml
+  - include_tasks: tasks/neovim.yml
   - include_tasks: tasks/tmux.yml
